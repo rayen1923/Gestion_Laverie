@@ -15,7 +15,7 @@ namespace LaverieController.Controllers
             _business = business;
         }
 
-        [HttpPut("toggleMachineEtat/{machineId}")]
+        [HttpPut("toggleMachineEtat/{machineId}/{cycleId}")]
         public IActionResult ToggleMachineEtat(int machineId)
         {
             try

@@ -1,8 +1,7 @@
 ﻿using GestionLaverie.Entites;
-using System;
-using System.Collections.Generic;
 using System.Net.Http.Json;
-using System.Threading.Tasks;
+using System.Reflection.PortableExecutable;
+using Machine = GestionLaverie.Entites.Machine;
 
 namespace Simulateur
 {
@@ -17,11 +16,11 @@ namespace Simulateur
             while (continueRunning)
             {
                 Console.WriteLine("Available tasks:");
-                Console.WriteLine("1. Retrieve all proprietors with their details.");
-                Console.WriteLine("2. Display all proprietors with their laundries, machines, and cycles.");
+                Console.WriteLine("1. Retrieve all proprietors .");
+                Console.WriteLine("2. Display all proprietors .");
                 Console.WriteLine("3. Toggle machine state.");
                 Console.WriteLine("0. Exit.");
-                Console.Write("Please choose an option (by number): ");
+                Console.Write("Choose number: ");
 
                 string choice = Console.ReadLine();
 
@@ -41,7 +40,7 @@ namespace Simulateur
                         continueRunning = false;
                         break;
                     default:
-                        Console.WriteLine("Invalid choice. Please try again.");
+                        Console.WriteLine("Invalid choice.");
                         break;
                 }
 
@@ -67,7 +66,7 @@ namespace Simulateur
                 else
                 {
                     proprietorsList = proprietors;
-                    Console.WriteLine("Proprietors have been successfully retrieved and stored.");
+                    Console.WriteLine("Proprietors have been successfully retrieved.");
                 }
             }
             catch (Exception ex)
@@ -80,7 +79,7 @@ namespace Simulateur
         {
             if (proprietorsList == null || proprietorsList.Count == 0)
             {
-                Console.WriteLine("No proprietors available. Please fetch data first.");
+                Console.WriteLine("No proprietors available.");
                 return;
             }
 
@@ -105,36 +104,174 @@ namespace Simulateur
 
         static async Task ToggleMachineState()
         {
-            Console.Write("Enter the ID of the machine to toggle state: ");
-            int machineId = int.Parse(Console.ReadLine());
-
-            var machine = FindMachineById(machineId);
-
-            if (machine != null)
+            Console.WriteLine("Available Proprietors:");
+            foreach (var _proprietor in proprietorsList)
             {
-                machine.Etat = (machine.Etat == 1) ? 0 : 1;
+                Console.WriteLine($"    {_proprietor.Id}/ {_proprietor.Name}");
+            }
 
-                Console.WriteLine($"Machine ID {machineId} state toggled to: {machine.Etat}");
-            }
-            else
+            Propriétaire proprietor = null;
+
+            while (proprietor == null)
             {
-                Console.WriteLine("Machine not found.");
+                Console.Write("Enter the ID of the proprietor: ");
+                if (int.TryParse(Console.ReadLine(), out int proprietorId))
+                {
+                    proprietor = FindProprietorByid(proprietorId);
+                    if (proprietor == null)
+                    {
+                        Console.WriteLine("Proprietor not found. Please try again.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Invalid input. Please enter a valid integer ID.");
+                }
             }
+
+            Console.WriteLine($"Laundries: ");
+            foreach (var laverie in proprietor.Laveries)
+            {
+                Console.WriteLine($"    {laverie.Id}/ Name: {laverie.Name}");
+            }
+
+            Laverie laundry = null;
+
+            while (laundry == null)
+            {
+                Console.Write("Enter the ID of the Laundry: ");
+                if (int.TryParse(Console.ReadLine(), out int laundryId))
+                {
+                    laundry = FindLaundryByid(laundryId, proprietor);
+                    if (laundry == null)
+                    {
+                        Console.WriteLine("Laundry not found. Please try again.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Invalid input. Please enter a valid integer ID.");
+                }
+            }
+
+            Console.WriteLine($"Machines: ");
+            foreach (var machine in laundry.Machines)
+            {
+                Console.WriteLine($"    {machine.Id}/ Marque: {machine.Marque}");
+            }
+
+            Machine machineE = null;
+
+            while (machineE == null)
+            {
+                Console.Write("Enter the ID of the Machine: ");
+                if (int.TryParse(Console.ReadLine(), out int machineId))
+                {
+                    machineE = FindMachineByid(machineId, laundry);
+                    if (machineE == null)
+                    {
+                        Console.WriteLine("Machine not found. Please try again.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Invalid input. Please enter a valid integer ID.");
+                }
+            }
+
+            Console.WriteLine($"Cycles: ");
+            foreach (var cycle in machineE.Cycles)
+            {
+                Console.WriteLine($"    {cycle.Id}/ Cout: {cycle.Cout} / Duration: {cycle.Duration}");
+            }
+
+            Cycle cycleE = null;
+
+            while (cycleE == null)
+            {
+                Console.Write("Enter the ID of the Cycle: ");
+                if (int.TryParse(Console.ReadLine(), out int cycleId))
+                {
+                    cycleE = FindCycleByid(cycleId, machineE);
+                    if (cycleE == null)
+                    {
+                        Console.WriteLine("Cycle not found. Please try again.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Invalid input. Please enter a valid integer ID.");
+                }
+            }
+
+            using HttpClient client = new HttpClient();
+            string apiUrl = $"{ApiConfig.BaseUrl}/Machine/toggleMachineEtat/{machineE.Id}/{cycleE.Id}";
+
+            try
+            {
+                HttpResponseMessage response = await client.PutAsync(apiUrl, null);
+                if (response.IsSuccessStatusCode)
+                {
+                    machineE.Etat = (machineE.Etat == 1) ? 0 : 1;
+                    Console.WriteLine($"Machine ID {machineE.Id} state toggled to: {machineE.Etat}");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to toggle state for Machine ID {machineE.Id}. Response: {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during state toggle: {ex.Message}");
+            }
+            
         }
 
-        static Machine FindMachineById(int machineId)
+
+
+        static Cycle FindCycleByid(int cycleId, Machine machineE)
+        {
+            foreach (var cycle in machineE.Cycles)
+            {
+                if (cycle.Id == cycleId)
+                {
+                    return cycle;
+                }
+            }
+            return null;
+        }
+
+        static Machine FindMachineByid(int machineId, Laverie laundry)
+        {
+            foreach (var machine in laundry.Machines)
+            {
+                if (machine.Id == machineId)
+                {
+                    return machine;
+                }
+            }
+            return null;
+        }
+
+        static Laverie FindLaundryByid(int laundryId, Propriétaire proprietor)
+        {
+            foreach (var laverie in proprietor.Laveries)
+            {
+                if (laverie.Id == laundryId)
+                {
+                    return laverie;
+                }
+            }
+            return null;
+        }
+
+        static Propriétaire FindProprietorByid(int proprietorId)
         {
             foreach (var proprietor in proprietorsList)
             {
-                foreach (var laverie in proprietor.Laveries)
+                if (proprietor.Id == proprietorId)
                 {
-                    foreach (var machine in laverie.Machines)
-                    {
-                        if (machine.Id == machineId)
-                        {
-                            return machine;
-                        }
-                    }
+                    return proprietor;
                 }
             }
             return null;

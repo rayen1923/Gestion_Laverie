@@ -9,7 +9,6 @@ namespace GestionLaverie.Entites
         public string Marque { get; set; }
         public string Modele { get; set; }
         public int Etat { get; set; }
-        public int LaverieId { get; set; }
         public List<Cycle> Cycles { get; set; }
 
         public Machine()
@@ -17,13 +16,12 @@ namespace GestionLaverie.Entites
             Cycles = new List<Cycle>();
         }
 
-        public Machine(int id, string marque, string modele, int etat, int laverieid, List<Cycle> cycles)
+        public Machine(int id, string marque, string modele, int etat, List<Cycle> cycles)
         {
             Id = id;
             Marque = marque;
             Modele = modele;
             Etat = etat;
-            LaverieId = laverieid;
             Cycles = cycles;
         }
     }
