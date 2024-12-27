@@ -203,31 +203,31 @@ namespace Simulateur
                     Console.WriteLine("Invalid input. Please enter a valid integer ID.");
                 }
             }
+            Console.WriteLine("Starting the cycle...");
+            await MonitorCycleCompletion(machineE, cycleE);
+        }
 
+        private static async Task MonitorCycleCompletion(Machine machine, Cycle cycle)
+        {
             using HttpClient client = new HttpClient();
-            string apiUrl = $"{ApiConfig.BaseUrl}/Machine/toggleMachineEtat/{machineE.Id}/{cycleE.Id}";
+            string apiUrl = $"{ApiConfig.BaseUrl}/Machine/toggleMachineEtat/{machine.Id}/{cycle.Id}";
 
             try
             {
-                HttpResponseMessage response = await client.PutAsync(apiUrl, null);
-                if (response.IsSuccessStatusCode)
-                {
-                    machineE.Etat = (machineE.Etat == 1) ? 0 : 1;
-                    Console.WriteLine($"Machine ID {machineE.Id} state toggled to: {machineE.Etat}");
-                }
-                else
-                {
-                    Console.WriteLine($"Failed to toggle state for Machine ID {machineE.Id}. Response: {response.ReasonPhrase}");
-                }
+                Console.WriteLine($"Starting cycle {cycle.Id} for Machine {machine.Id}.");
+                HttpResponseMessage initialResponse = await client.PutAsync(apiUrl, null);
+
+                Console.WriteLine($"Cycle {cycle.Id} will complete in {cycle.Duration.TotalSeconds} seconds...");
+                await Task.Delay(cycle.Duration);
+
+                Console.WriteLine($"Cycle {cycle.Id} for Machine {machine.Id} completed.");
+                HttpResponseMessage finalResponse = await client.PutAsync(apiUrl, null);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error during state toggle: {ex.Message}");
+                Console.WriteLine($"Error while updating state: {ex.Message}");
             }
-            
         }
-
-
 
         static Cycle FindCycleByid(int cycleId, Machine machineE)
         {

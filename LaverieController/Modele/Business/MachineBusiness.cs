@@ -11,9 +11,9 @@ namespace LaverieController.Modele.Business
             _machineDAO = machineDAO;
         }
 
-        public bool ToggleMachineEtat(int machineId)
+        public bool ToggleMachineEtat(int machineId, int cycleId)
         {
-            return _machineDAO.UpdateMachineEtat(machineId);
+            return _machineDAO.UpdateMachineEtat(machineId, cycleId);
         }
     }
 }

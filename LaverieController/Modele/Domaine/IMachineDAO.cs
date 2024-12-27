@@ -2,6 +2,6 @@
 {
     public interface IMachineDAO
     {
-        bool UpdateMachineEtat(int machineId);
+        bool UpdateMachineEtat(int machineId, int cycleId);
     }
 }

@@ -16,15 +16,15 @@ namespace LaverieController.Controllers
         }
 
         [HttpPut("toggleMachineEtat/{machineId}/{cycleId}")]
-        public IActionResult ToggleMachineEtat(int machineId)
+        public IActionResult ToggleMachineEtat(int machineId, int cycleId)
         {
             try
             {
-                bool isUpdated = _business.ToggleMachineEtat(machineId);
+                bool isUpdated = _business.ToggleMachineEtat(machineId, cycleId);
 
                 if (isUpdated)
                 {
-                    return Ok($"Machine with ID {machineId} state successfully toggled.");
+                    return Ok($"Machine with ID {machineId} and Cycle ID {cycleId} state successfully toggled.");
                 }
                 else
                 {
