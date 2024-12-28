@@ -98,5 +98,29 @@ namespace LaverieController.Infrastructure
 
             return proprietaires;
         }
+
+        public int Login(string username, string password)
+        {
+            string query = "SELECT Id FROM Propriétaires WHERE Name = @username AND Password = @password";
+            using (MySqlConnection conn = new MySqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@username", username);
+                    cmd.Parameters.AddWithValue("@password", password);
+
+                    object result = cmd.ExecuteScalar();
+                    if (result != null)
+                    {
+                        return Convert.ToInt32(result);
+                    }
+                    else
+                    {
+                        return -1;
+                    }
+                }
+            }
+        }
     }
 }

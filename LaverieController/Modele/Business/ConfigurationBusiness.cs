@@ -17,5 +17,10 @@ namespace LaverieController.Modele.Business
             var proprietaires = _proprietaireDao.GetAllPropriétairesWithDetails();
             return proprietaires ?? new List<Propriétaire>();
         }
+
+        public int Login(string username, string password)
+        {
+            return _proprietaireDao.Login(username, password);
+        }
     }
 }
